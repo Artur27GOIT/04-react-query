@@ -8,6 +8,7 @@ import Loader from "../Loader/Loader";
 import ErrorMessage from "../ErrorMessage/ErrorMessage";
 import MovieModal from "../MovieModal/MovieModal";
 import ReactPaginate from "react-paginate";
+import toast, { Toaster } from "react-hot-toast";
 import css from "./App.module.css";
 
 export default function App() {
@@ -15,11 +16,16 @@ export default function App() {
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
 
-  const { data, isLoading, isError } = useQuery({
+  const { data, isLoading, isError, isSuccess, isFetching } = useQuery({
     queryKey: ["movies", query, page],
     queryFn: () => fetchMovies(query, page),
     enabled: query !== "",
+    placeholderData: (prev) => prev,
   });
+
+  if (isSuccess && data.results.length === 0) {
+    toast.error("Film is not found.");
+  }
 
   function handleSearch(text: string) {
     setQuery(text);
@@ -40,13 +46,15 @@ export default function App() {
 
   return (
     <>
+      <Toaster position="top-right" />
+
       <SearchBar onSubmit={handleSearch} />
 
       {isLoading && <Loader />}
       {isError && <ErrorMessage />}
 
       {data?.results && (
-        <MovieGrid movies={data.results} onSelectMovie={handleSelectMovie} />
+        <MovieGrid movies={data.results} onSelect={handleSelectMovie} />
       )}
 
       {(data?.total_pages ?? 0) > 1 && (
@@ -66,6 +74,8 @@ export default function App() {
       {selectedMovie && (
         <MovieModal movie={selectedMovie} onClose={handleCloseModal} />
       )}
+
+      {isFetching && <Loader />}
     </>
   );
 }
