@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import SearchBar from "../SearchBar/SearchBar";
 import type { Movie } from "../../types/movie";
@@ -23,9 +23,11 @@ export default function App() {
     placeholderData: (prev) => prev,
   });
 
-  if (isSuccess && data.results.length === 0) {
-    toast.error("Film is not found.");
-  }
+  useEffect(() => {
+    if (isSuccess && data?.results.length === 0 && query !== "") {
+      toast.error("Film is not found.");
+    }
+  }, [isSuccess, data?.results.length, query]);
 
   function handleSearch(text: string) {
     setQuery(text);
